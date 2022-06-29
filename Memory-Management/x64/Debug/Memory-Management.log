@@ -1,2 +1,3 @@
 ﻿  Memory-Management.cpp
+C:\Users\User\Desktop\Vojvodev\Vojvodev_Memory-Management\Memory-Management\Memory-Management.cpp(378,29): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Memory-Management.vcxproj -> C:\Users\User\Desktop\Vojvodev\Vojvodev_Memory-Management\Memory-Management\x64\Debug\Memory-Management.exe

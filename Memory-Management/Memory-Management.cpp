@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unordered_set>
+#include <unordered_map>
 #include <queue>
 #include <list>
 #include <iterator>
@@ -15,10 +16,14 @@ int fifo(int[], int, int);
 int lru(int[], int, int);
 int second_chance(int[], int, int);
 int lfu(int[], int, int);
+int pageFaults(int[], int, int);
 int optimal_algorithm(int[], int, int);
 
 void printQueue(int, queue<int>, string);
 void printList(int, list<int>, string);
+void printVector(int, vector<int>, string);
+int predict(int[], vector<int>&, int, int);
+bool search(int, vector<int>&);
 
 
 
@@ -54,46 +59,47 @@ int main() {
     cout << std::endl;
     
     
-    
     do {
-        cout << "Pick an algorithm \n"
-            "1) FIFO \n"
-            "2) LRU \n"
-            "3) Second Chance \n"
-            "4) LFU \n"
-            "5) Optimal algorithm \n\n"
-            "Enter number: ";
-        cin >> algorithm_number;
-    } while ((algorithm_number < 1) || (algorithm_number > 5));
+        do {
+            cout << "Pick an algorithm \n"
+                "1) FIFO \n"
+                "2) LRU \n"
+                "3) Second Chance \n"
+                "4) LFU \n"
+                "5) Optimal algorithm \n\n"
+                "Enter number: ";
+            cin >> algorithm_number;
+        } while ((algorithm_number < 1) || (algorithm_number > 5));
 
 
 
 
 
-    switch (algorithm_number) {
-    case 1:
-        fifo(reference_array, reference_number, frame_number);
-        break;
-    case 2:
-        lru(reference_array, reference_number, frame_number);
-        break;
-    case 3:
-        second_chance(reference_array, reference_number, frame_number);
-        break;
-    case 4:
-        lfu(reference_array, reference_number, frame_number);
-        break;
-    case 5:
-        //optimal_algorithm(reference_array, reference_number, frame_number);
-        break;
-    default:
+        switch (algorithm_number) {
+        case 1:
+            fifo(reference_array, reference_number, frame_number);
+            break;
+        case 2:
+            lru(reference_array, reference_number, frame_number);
+            break;
+        case 3:
+            second_chance(reference_array, reference_number, frame_number);
+            break;
+        case 4:
+            lfu(reference_array, reference_number, frame_number);
+            break;
+        case 5:
+            optimal_algorithm(reference_array, reference_number, frame_number);
+            break;
+        default:
 
-        abort();
-    }
-
+            abort();
+        }
+    } while (1);
 
     return 0;
 }
+
 
 
 
@@ -150,7 +156,7 @@ int fifo(int pages[], int reference_number, int frame_number) {
     }
 
     cout << "\nFIFO\nNumber of page faults: " << page_faults << "\n";
-    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n";
+    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n\n\n";
 
     return page_faults;
 }
@@ -224,7 +230,7 @@ int lru(int pages[], int reference_number, int frame_number)
     }
 
     cout << "\nLRU\nNumber of page faults: " << page_faults << "\n";
-    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n";
+    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n\n\n";
 
     return page_faults;
 }
@@ -320,23 +326,123 @@ int second_chance(int pages[], int reference_number, int frame_number) {
     }
 
     cout << "\nSecond Chance\nNumber of page faults: " << page_faults << "\n";
-    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n";
+    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n\n\n";
 
     return page_faults;
 
 }
 
 
-void lfu() {
-    std::cout << "\nnot working yet :(";
-    abort();
+// Aging mechanism. When not used, a page's frequency gets decreased by one, else it gets increased by one
+int lfu(int pages[], int reference_number, int frame_number) {
+
+    vector<int> v;
+    unordered_map<int, int> mp;     // To store frequency of pages
+
+    int page_faults = 0;
+    
+
+    for (int i = 0; i < reference_number; i++) {
+
+        auto it = find(v.begin(), v.end(), pages[i]);
+
+        
+        if (it == v.end()) {                     // If element is not present
+            if (v.size() == frame_number) {     // If memory is full
+                mp[v[0]]--;                    // Decrease the frequency
+                    
+                v.erase(v.begin());           // Remove the first element as it is least frequently used
+                
+            }
+
+            v.push_back(pages[i]);             // Add the element at the end of memory
+                
+            mp[pages[i]]++;                   // Increase its frequency
+            
+
+            cout << pages[i] << " - PF  - |";       // First part of printing out
+
+            page_faults++;
+        }
+        else {                              // If element is present, remove the element, add it at the end and increase its frequency
+            mp[pages[i]]++;
+            v.erase(it);
+            v.push_back(pages[i]);
+            
+            cout << pages[i] << " - NPF - |";       // First part of printing out
+
+        }
+
+        // Compare frequency with other pages
+        // starting from the 2nd last page                 
+        int k = v.size() - 2;
+
+        // Sort the pages based on their frequency 
+        // And time at which they arrive
+        // if frequency is same
+        // then, the page arriving first must be placed first
+        while (k > -1 && mp[v[k]] > mp[v[k + 1]]) {
+            swap(v[k + 1], v[k]);
+            k--;
+        }
+
+
+        for (int i = 0; i < v.size(); i++)          // Second part of printing out 
+            cout << v[i] << "|";
+
+        cout << " <- " << endl;
+    
+    }
+
+
+    cout << "\nLFU\nNumber of page faults: " << page_faults << "\n";
+    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n\n\n";
+
+    
+    return page_faults;
 }
 
 
-void optimal_algorithm() {
-    std::cout << "\nnot working yet :(";
-    abort();
+// Throws out page that will appear last, in the future
+int optimal_algorithm(int pages[], int reference_number, int frame_number) {
+
+    vector<int> fr;
+    int page_faults = 0;
+    int hits = 0;
+
+    for (int i = 0; i < reference_number; i++) {
+        if (search(pages[i], fr)) {
+            hits++;
+
+            printVector(pages[i], fr, " - NPF - |");
+            continue;
+        }
+
+        if (fr.size() < frame_number)
+        {
+            fr.push_back(pages[i]);
+        }
+        else {
+            int j = predict(pages, fr, reference_number, i + 1);        // Find the page to be replaced.
+            fr[j] = pages[i];
+        }
+
+
+
+        printVector(pages[i], fr, " - PF  - |");
+    }
+
+    page_faults = reference_number - hits;
+
+    cout << "\nOptimal algorithm\nNumber of page faults: " << page_faults << "\n";
+    cout << "Efficiency: " << page_faults << " / " << reference_number << " = " << 100 * page_faults / (double)reference_number << "%" << "\n\n\n\n";
+
+    return page_faults;
+
 }
+
+
+
 
 
 // Helping function for fifo and second chance that prints out pages
@@ -365,5 +471,49 @@ void printList(int page, list<int> indexes, string PForNPF)
         cout << *it << "|";
 
     cout << " <- " << endl;
+}
+
+
+// Helping function for optimal algorithm
+void printVector(int page, vector<int> fr, string PForNPF)
+{
+    cout << page << PForNPF;
+
+    for (int i = 0; i < fr.size(); i++)
+        cout << fr[i] << "|";
+
+    cout << " <- " << endl;
+}
+
+
+// Helping function for optiomal algorithm, determines which page to kick out
+int predict(int page[], vector<int>& fr, int reference_number, int index) {
+
+    int res = -1, farthest = index;
+    for (int i = 0; i < fr.size(); i++) {
+        int j;
+        for (j = index; j < reference_number; j++) {
+            if (fr[i] == page[j]) {
+                if (j > farthest) {
+                    farthest = j;
+                    res = i;
+                }
+                break;
+            }
+        }
+        if (j == reference_number)
+            return i;
+    }
+
+    return (res == -1) ? 0 : res;
+}
+
+
+// Helping function for optiomal algorithm
+bool search(int key, vector<int>& fr) {
+    for (int i = 0; i < fr.size(); i++)
+        if (fr[i] == key)
+            return true;
+    return false;
 }
 
