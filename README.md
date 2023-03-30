@@ -1,2 +1,4 @@
 # Memory-Management
-Пројекат урађен на предмету Основи оп. система, 2022. године.
+Projekat urađen na predmetu Osnovi operativnih sistema, 2022. godine.
+
+Jednostavna implementacija 5 algoritama za upravljanje memorijom.
